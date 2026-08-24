@@ -1164,11 +1164,15 @@ function collectAllData(){
   const data = {};
   new FormData(form).forEach((val,key)=>{ data[key] = val; });
   // ensure checkboxes not in FormData when unchecked are recorded as "No"
-  form.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+  form.querySelectorAll('input[type=checkbox][name]').forEach(cb=>{
     if(!(cb.name in data)) data[cb.name] = 'No'; else data[cb.name] = 'Sí';
   });
   if(document.getElementById('peso_nose').checked) data.peso = 'No lo sé';
   if(document.getElementById('talla_nose').checked) data.talla = 'No lo sé';
+  // estas dos casillas ("No lo sé") no son columnas de la base de datos —
+  // ya se reflejan arriba en data.peso / data.talla, así que se descartan
+  delete data.peso_no_se;
+  delete data.talla_no_se;
   data['fecha_envio'] = new Date().toLocaleString('es-MX');
   return data;
 }
@@ -1209,12 +1213,14 @@ function submitForm(){
   supabase.from(CONFIG.TABLE).insert([data])
   .then(({ error })=>{
     if(error){
-      showBanner('⚠ Hubo un problema al enviar tus respuestas. Por favor descarga tu resumen en PDF y compártelo directamente.', 'warn');
+      console.error('Supabase insert error:', error);
+      showBanner('⚠ Hubo un problema al enviar tus respuestas (' + (error.message || 'error desconocido') + '). Por favor descarga tu resumen en PDF y compártelo directamente.', 'warn');
     }
     finish();
   })
-  .catch(()=>{
-    showBanner('⚠ Hubo un problema de conexión al enviar. Por favor descarga tu resumen en PDF y compártelo directamente.', 'warn');
+  .catch((err)=>{
+    console.error('Supabase connection error:', err);
+    showBanner('⚠ Hubo un problema de conexión al enviar (' + (err && err.message ? err.message : 'sin detalle') + '). Por favor descarga tu resumen en PDF y compártelo directamente.', 'warn');
     finish();
   })
   .finally(()=>{

@@ -396,6 +396,10 @@ function collectAllData(){
   new FormData(form).forEach((val,key)=>{ data[key] = val; });
   if(!('consentimiento' in data)) data.consentimiento = 'No'; else data.consentimiento = 'Sí';
   if(pesoNose.checked) data.peso_actual = 'No lo sé';
+  // los inputs de archivo no son columnas de la base de datos — las rutas
+  // reales de las fotos ya subidas se agregan aparte como fotos_paths / bioquimicos_paths
+  delete data.fotos;
+  delete data.bioquimicos;
   data['fecha_envio'] = new Date().toLocaleString('es-MX');
   return data;
 }
@@ -465,11 +469,15 @@ document.getElementById('btn-submit').addEventListener('click', async ()=>{
 
   supabase.from(CONFIG.TABLE).insert([data])
   .then(({ error })=>{
-    if(error) showBanner('⚠ Hubo un problema al enviar. Por favor intenta de nuevo o contacta a Erika directamente.', 'warn');
+    if(error){
+      console.error('Supabase insert error:', error);
+      showBanner('⚠ Hubo un problema al enviar (' + (error.message || 'error desconocido') + '). Por favor intenta de nuevo o contacta a Erika directamente.', 'warn');
+    }
     finish();
   })
-  .catch(()=>{
-    showBanner('⚠ Hubo un problema de conexión al enviar.', 'warn');
+  .catch((err)=>{
+    console.error('Supabase connection error:', err);
+    showBanner('⚠ Hubo un problema de conexión al enviar (' + (err && err.message ? err.message : 'sin detalle') + ').', 'warn');
     finish();
   })
   .finally(()=>{

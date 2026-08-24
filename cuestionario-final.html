@@ -312,11 +312,15 @@ document.getElementById('btn-submit').addEventListener('click', ()=>{
   const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
   supabase.from(CONFIG.TABLE).insert([data])
   .then(({ error })=>{
-    if(error) showBanner('⚠ Hubo un problema al enviar. Por favor intenta de nuevo o contacta a Erika directamente.', 'warn');
+    if(error){
+      console.error('Supabase insert error:', error);
+      showBanner('⚠ Hubo un problema al enviar (' + (error.message || 'error desconocido') + '). Por favor intenta de nuevo o contacta a Erika directamente.', 'warn');
+    }
     finish();
   })
-  .catch(()=>{
-    showBanner('⚠ Hubo un problema de conexión al enviar.', 'warn');
+  .catch((err)=>{
+    console.error('Supabase connection error:', err);
+    showBanner('⚠ Hubo un problema de conexión al enviar (' + (err && err.message ? err.message : 'sin detalle') + ').', 'warn');
     finish();
   })
   .finally(()=>{
