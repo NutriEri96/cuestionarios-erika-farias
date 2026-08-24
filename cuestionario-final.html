@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuestionario Final | Erika Farías Nutrición</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root{
+    --sage:#86A889;
+    --sage-dark:#4F6B52;
+    --sage-darker:#3A4F3C;
+    --sage-light:#E8EFE6;
+    --sage-pale:#F4F7F2;
+    --paper:#F8F7F3;
+    --ink:#26291F;
+    --ink-soft:#5B5F52;
+    --line:#DDE3D6;
+    --white:#FFFFFF;
+    --error:#B4544A;
+    --radius:14px;
+    --shadow: 0 6px 24px rgba(58,79,60,0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Raleway',sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      radial-gradient(circle at 90% 8%, rgba(134,168,137,0.10), transparent 40%),
+      radial-gradient(circle at 4% 96%, rgba(134,168,137,0.12), transparent 45%);
+    pointer-events:none;
+    z-index:0;
+  }
+  .wrap{
+    max-width:760px;
+    margin:0 auto;
+    padding:28px 20px 80px;
+    position:relative;
+    z-index:1;
+  }
+  .brand{display:flex; align-items:center; gap:14px; margin-bottom:6px;}
+  .brand svg{flex:0 0 auto;}
+  .brand-text{display:flex; flex-direction:column; line-height:1.05;}
+  .brand-text .name{font-family:'Playfair Display', serif; font-style:italic; font-weight:700; font-size:28px; color:var(--sage-darker);}
+  .brand-text .sub{font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--ink-soft); margin-top:2px;}
+  .hero{
+    background:linear-gradient(135deg, var(--sage-dark), var(--sage-darker));
+    color:var(--white); border-radius:var(--radius); padding:26px 26px 22px; margin:18px 0 22px;
+    box-shadow:var(--shadow); position:relative; overflow:hidden;
+  }
+  .hero::after{content:""; position:absolute; right:-40px; top:-40px; width:180px; height:180px; background:rgba(255,255,255,0.06); border-radius:50%;}
+  .hero h1{font-family:'Playfair Display', serif; font-style:italic; font-weight:600; font-size:26px; margin:0 0 8px;}
+  .hero p{margin:0; font-size:14.5px; color:rgba(255,255,255,0.92); max-width:56ch;}
+  .hero .meta{display:flex; gap:18px; margin-top:16px; flex-wrap:wrap; font-size:12.5px; color:rgba(255,255,255,0.85);}
+  .hero .meta span{display:flex; align-items:center; gap:6px;}
+  .card{background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow); padding:28px 26px 26px; border:1px solid var(--line);}
+  .step-title{font-family:'Playfair Display', serif; font-style:italic; font-weight:700; font-size:22px; color:var(--sage-darker); margin:0 0 4px;}
+  .step-desc{font-size:13.5px; color:var(--ink-soft); margin:0 0 22px;}
+  .field{margin-bottom:18px;}
+  .field label, .group-label{display:block; font-size:13.5px; font-weight:600; color:var(--ink); margin-bottom:6px;}
+  .field .hint{font-size:12px; color:var(--ink-soft); font-weight:400; margin-top:4px;}
+  .nose-toggle{display:flex !important; align-items:center; gap:6px; font-size:12px !important; font-weight:500 !important; color:var(--ink-soft) !important; margin-top:7px; cursor:pointer;}
+  .nose-toggle input{width:14px; height:14px; accent-color:var(--sage-dark); margin:0;}
+  input:disabled{background:var(--sage-pale); color:var(--ink-soft); cursor:not-allowed;}
+  input[type=text], input[type=number], input[type=tel], input[type=email], select, textarea{
+    width:100%; padding:11px 13px; border:1.5px solid var(--line); border-radius:10px;
+    font-family:'Raleway',sans-serif; font-size:14.5px; color:var(--ink); background:var(--white);
+    transition: border-color .2s, box-shadow .2s;
+  }
+  textarea{resize:vertical; min-height:70px;}
+  input:focus, select:focus, textarea:focus{outline:none; border-color:var(--sage); box-shadow:0 0 0 3px rgba(134,168,137,0.22);}
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  @media (max-width:560px){ .row{grid-template-columns:1fr;} }
+  .choice-grid{display:flex; flex-wrap:wrap; gap:8px;}
+  .choice{position:relative;}
+  .choice input{position:absolute; opacity:0; width:0; height:0;}
+  .choice label{
+    display:inline-flex; align-items:center; gap:6px; padding:9px 15px; border:1.5px solid var(--line);
+    border-radius:999px; font-size:13.5px; font-weight:500; color:var(--ink-soft); cursor:pointer;
+    background:var(--white); transition: all .18s; margin:0;
+  }
+  .choice input:checked + label{background:var(--sage-light); border-color:var(--sage); color:var(--sage-darker); font-weight:600;}
+  .consent{
+    display:flex; gap:10px; align-items:flex-start; background:var(--sage-pale); border:1px solid var(--sage-light);
+    border-radius:12px; padding:14px 16px; margin-top:6px; font-size:12.8px; color:var(--ink-soft);
+  }
+  .consent input{margin-top:3px; width:16px; height:16px; accent-color:var(--sage-dark); flex:0 0 auto;}
+  .nav-buttons{display:flex; justify-content:flex-end; align-items:center; margin-top:26px; gap:12px;}
+  button{
+    font-family:'Raleway',sans-serif; font-weight:700; font-size:14.5px; border-radius:999px; padding:13px 26px;
+    border:none; cursor:pointer; transition: transform .15s, box-shadow .15s, opacity .15s;
+  }
+  button:active{transform:scale(0.97);}
+  .btn-primary{background:linear-gradient(135deg, var(--sage-dark), var(--sage-darker)); color:#fff; box-shadow:0 6px 16px rgba(79,107,82,0.28);}
+  .btn-primary:disabled{opacity:0.5; cursor:not-allowed;}
+  .error-msg{color:var(--error); font-size:12.5px; font-weight:600; margin-top:6px; display:none;}
+  .field.invalid input, .field.invalid select, .field.invalid textarea{border-color:var(--error);}
+  .field.invalid .error-msg{display:block;}
+  .done-screen{text-align:center; padding:30px 10px;}
+  .done-screen .icon{width:64px; height:64px; border-radius:50%; background:var(--sage-light); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;}
+  .done-screen h2{font-family:'Playfair Display', serif; font-style:italic; color:var(--sage-darker); font-size:24px; margin-bottom:8px;}
+  .done-screen p{color:var(--ink-soft); font-size:14px; max-width:44ch; margin:0 auto 20px;}
+  footer{text-align:center; font-size:11.5px; color:var(--ink-soft); margin-top:26px; opacity:0.75;}
+  #status-banner{display:none; padding:10px 14px; border-radius:10px; font-size:12.5px; font-weight:600; margin-bottom:16px;}
+  #status-banner.show{display:block;}
+  #status-banner.warn{background:#FBF2E4; color:#8A5A1E; border:1px solid #F1D9AE;}
+  @media print{
+    body::before{display:none;}
+    .hero .meta, .nav-buttons, footer, #status-banner{display:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">
+    <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
+      <path d="M21 4C21 4 8 9 8 22C8 30.2843 13.9249 37 21 37C21 37 21 20 21 4Z" fill="#86A889" opacity="0.55"/>
+      <path d="M21 4C21 4 34 9 34 22C34 30.2843 28.0751 37 21 37C21 37 21 20 21 4Z" fill="#4F6B52"/>
+      <path d="M21 6V36" stroke="#F8F7F3" stroke-width="1" stroke-linecap="round"/>
+    </svg>
+    <div class="brand-text">
+      <span class="name">Erika Farías</span>
+      <span class="sub">Nutrición</span>
+    </div>
+  </div>
+
+  <div class="hero">
+    <h1>Cuestionario Final</h1>
+    <p>Llegamos al cierre de tu programa. Cuéntame cómo te fue en general, para conocer tus resultados y tu experiencia.</p>
+    <div class="meta">
+      <span>⏱ Toma entre 5 y 8 minutos</span>
+      <span>🔒 Tu información es confidencial</span>
+    </div>
+  </div>
+
+  <div id="status-banner"></div>
+
+  <form id="quiz-form" class="card" novalidate>
+    <h2 class="step-title">Cierre de tu programa</h2>
+    <p class="step-desc">Gracias por llegar hasta aquí. Esto me ayuda a ver tus resultados y mejorar el programa.</p>
+
+    <div class="field">
+      <label for="nombre">Nombre completo *</label>
+      <input type="text" id="nombre" name="nombre" required placeholder="El mismo con el que llenaste tu historia clínica">
+      <div class="error-msg">Por favor escribe tu nombre completo.</div>
+    </div>
+
+    <div class="field">
+      <label for="cambios_percibidos">¿Qué cambios notaste en general, comparado con el inicio? *</label>
+      <textarea id="cambios_percibidos" name="cambios_percibidos" required placeholder="Ej. Bajé de peso, tengo más energía, mis niveles de glucosa mejoraron, duermo mejor..."></textarea>
+      <div class="error-msg">Cuéntame qué cambios notaste.</div>
+    </div>
+
+    <div class="field">
+      <span class="group-label">¿Qué tan satisfecha quedaste con el programa? *</span>
+      <div class="choice-grid">
+        <div class="choice"><input type="radio" id="sat-muy" name="satisfaccion" value="Muy satisfecha" required><label for="sat-muy">Muy satisfecha</label></div>
+        <div class="choice"><input type="radio" id="sat-sat" name="satisfaccion" value="Satisfecha" required><label for="sat-sat">Satisfecha</label></div>
+        <div class="choice"><input type="radio" id="sat-neutral" name="satisfaccion" value="Neutral" required><label for="sat-neutral">Neutral</label></div>
+        <div class="choice"><input type="radio" id="sat-insat" name="satisfaccion" value="Insatisfecha" required><label for="sat-insat">Insatisfecha</label></div>
+      </div>
+      <div class="error-msg">Selecciona una opción.</div>
+    </div>
+
+    <div class="field">
+      <label for="que_le_gusto">¿Qué fue lo que más te gustó del programa?</label>
+      <textarea id="que_le_gusto" name="que_le_gusto" placeholder="Ej. Que no tuve que dejar de comer tortillas, el seguimiento mensual..."></textarea>
+    </div>
+
+    <div class="field">
+      <label for="que_mejoraria">¿Qué mejorarías?</label>
+      <textarea id="que_mejoraria" name="que_mejoraria" placeholder="Ej. Más ejemplos de recetas, sesiones más seguido..."></textarea>
+    </div>
+
+    <div class="field">
+      <label for="habitos_mantener">¿Qué hábitos planeas seguir aplicando por tu cuenta? *</label>
+      <textarea id="habitos_mantener" name="habitos_mantener" required placeholder="Ej. Seguir comiendo cada 4 horas, caminar 30 min al día..."></textarea>
+      <div class="error-msg">Cuéntame qué hábitos planeas mantener.</div>
+    </div>
+
+    <div class="field">
+      <label for="testimonio">Testimonio o comentarios finales (opcional)</label>
+      <textarea id="testimonio" name="testimonio" placeholder="Cualquier cosa que quieras compartir sobre tu experiencia..."></textarea>
+    </div>
+
+    <div class="field">
+      <span class="group-label">¿Autorizas que tu comentario se use como testimonio (por ejemplo en redes sociales)?</span>
+      <div class="choice-grid">
+        <div class="choice"><input type="radio" id="test-si" name="autoriza_testimonio" value="Sí"><label for="test-si">Sí</label></div>
+        <div class="choice"><input type="radio" id="test-no" name="autoriza_testimonio" value="No"><label for="test-no">No</label></div>
+        <div class="choice"><input type="radio" id="test-anon" name="autoriza_testimonio" value="Sí, pero de forma anónima"><label for="test-anon">Sí, pero anónimo</label></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="group-label">¿Te gustaría continuar con la siguiente fase del programa? *</span>
+      <div class="choice-grid">
+        <div class="choice"><input type="radio" id="continua-si" name="continuar_siguiente_fase" value="Sí" required><label for="continua-si">Sí</label></div>
+        <div class="choice"><input type="radio" id="continua-no" name="continuar_siguiente_fase" value="No" required><label for="continua-no">No</label></div>
+        <div class="choice"><input type="radio" id="continua-duda" name="continuar_siguiente_fase" value="No estoy segura todavía" required><label for="continua-duda">No estoy segura todavía</label></div>
+      </div>
+      <div class="error-msg">Selecciona una opción.</div>
+    </div>
+
+    <div class="consent">
+      <input type="checkbox" id="consent" name="consentimiento" required>
+      <label for="consent">Autorizo que esta información sea utilizada por Erika Farías (Especialista en Nutrición, Activación Física y Salud, Cédula 11975217) para evaluar los resultados de mi programa. *</label>
+    </div>
+  </form>
+
+  <div class="nav-buttons">
+    <button type="button" class="btn-primary" id="btn-submit">Enviar cuestionario final ✓</button>
+  </div>
+
+  <div class="card" id="done-card" style="display:none;">
+    <div class="done-screen">
+      <div class="icon">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17L4 12" stroke="#4F6B52" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h2>¡Gracias, <span id="done-name"></span>!</h2>
+      <p>Recibí tu cuestionario final. Gracias por todo tu esfuerzo durante el programa — fue un gusto acompañarte en el proceso.</p>
+    </div>
+  </div>
+
+  <footer>Erika Farías · Especialista en Nutrición, Activación Física y Salud · Cédula Profesional 11975217</footer>
+</div>
+
+<script>
+const CONFIG = {
+  SUPABASE_URL: "PEGA_AQUI_TU_SUPABASE_URL",
+  SUPABASE_ANON_KEY: "PEGA_AQUI_TU_SUPABASE_ANON_KEY",
+  TABLE: "cuestionario_final"
+};
+
+const form = document.getElementById('quiz-form');
+
+function validateForm(){
+  let valid = true;
+  form.querySelectorAll('[required]').forEach(input=>{
+    const field = input.closest('.field') || input.closest('.consent');
+    let ok = true;
+    if(input.type === 'radio'){
+      const group = form.querySelectorAll(`[name="${input.name}"]`);
+      ok = Array.from(group).some(r=>r.checked);
+    } else if(input.type === 'checkbox'){
+      ok = input.checked;
+    } else {
+      ok = input.value.trim() !== '';
+    }
+    if(!ok){
+      valid = false;
+      if(field) field.classList.add('invalid');
+    } else {
+      if(field) field.classList.remove('invalid');
+    }
+  });
+  return valid;
+}
+
+function collectAllData(){
+  const data = {};
+  new FormData(form).forEach((val,key)=>{ data[key] = val; });
+  if(!('consentimiento' in data)) data.consentimiento = 'No'; else data.consentimiento = 'Sí';
+  data['fecha_envio'] = new Date().toLocaleString('es-MX');
+  return data;
+}
+
+function showBanner(msg, type){
+  const b = document.getElementById('status-banner');
+  b.textContent = msg;
+  b.className = 'show ' + (type||'');
+}
+
+document.getElementById('btn-submit').addEventListener('click', ()=>{
+  if(!validateForm()){
+    document.querySelector('.invalid')?.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  const data = collectAllData();
+
+  const finish = ()=>{
+    document.getElementById('quiz-form').style.display = 'none';
+    document.querySelector('.nav-buttons').style.display = 'none';
+    document.getElementById('done-card').style.display = 'block';
+    document.getElementById('done-name').textContent = data.nombre || '';
+  };
+
+  if(!CONFIG.SUPABASE_URL || CONFIG.SUPABASE_URL.indexOf('PEGA_AQUI') !== -1){
+    showBanner('⚠ Aún no se ha conectado este formulario a Supabase. Revisa las instrucciones de configuración.', 'warn');
+    btn.disabled = false;
+    btn.textContent = 'Enviar cuestionario final ✓';
+    finish();
+    return;
+  }
+
+  const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+  supabase.from(CONFIG.TABLE).insert([data])
+  .then(({ error })=>{
+    if(error) showBanner('⚠ Hubo un problema al enviar. Por favor intenta de nuevo o contacta a Erika directamente.', 'warn');
+    finish();
+  })
+  .catch(()=>{
+    showBanner('⚠ Hubo un problema de conexión al enviar.', 'warn');
+    finish();
+  })
+  .finally(()=>{
+    btn.disabled = false;
+    btn.textContent = 'Enviar cuestionario final ✓';
+  });
+});
+</script>
+</body>
+</html>

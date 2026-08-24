@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Historia Clínica Nutricional | Erika Farías Nutrición</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root{
+    --sage:#86A889;
+    --sage-dark:#4F6B52;
+    --sage-darker:#3A4F3C;
+    --sage-light:#E8EFE6;
+    --sage-pale:#F4F7F2;
+    --paper:#F8F7F3;
+    --ink:#26291F;
+    --ink-soft:#5B5F52;
+    --line:#DDE3D6;
+    --white:#FFFFFF;
+    --error:#B4544A;
+    --radius:14px;
+    --shadow: 0 6px 24px rgba(58,79,60,0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Raleway',sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      radial-gradient(circle at 90% 8%, rgba(134,168,137,0.10), transparent 40%),
+      radial-gradient(circle at 4% 96%, rgba(134,168,137,0.12), transparent 45%);
+    pointer-events:none;
+    z-index:0;
+  }
+  .wrap{
+    max-width:760px;
+    margin:0 auto;
+    padding:28px 20px 80px;
+    position:relative;
+    z-index:1;
+  }
+
+  /* ---------- Header / brand ---------- */
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:6px;
+  }
+  .brand svg{flex:0 0 auto;}
+  .brand-text{display:flex; flex-direction:column; line-height:1.05;}
+  .brand-text .name{
+    font-family:'Playfair Display', serif;
+    font-style:italic;
+    font-weight:700;
+    font-size:28px;
+    color:var(--sage-darker);
+  }
+  .brand-text .sub{
+    font-size:11px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+
+  .hero{
+    background:linear-gradient(135deg, var(--sage-dark), var(--sage-darker));
+    color:var(--white);
+    border-radius: var(--radius);
+    padding:26px 26px 22px;
+    margin:18px 0 22px;
+    box-shadow: var(--shadow);
+    position:relative;
+    overflow:hidden;
+  }
+  .hero::after{
+    content:"";
+    position:absolute; right:-40px; top:-40px;
+    width:180px; height:180px;
+    background: rgba(255,255,255,0.06);
+    border-radius:50%;
+  }
+  .hero h1{
+    font-family:'Playfair Display', serif;
+    font-style:italic;
+    font-weight:600;
+    font-size:26px;
+    margin:0 0 8px;
+  }
+  .hero p{
+    margin:0;
+    font-size:14.5px;
+    color:rgba(255,255,255,0.92);
+    max-width:56ch;
+  }
+  .hero .meta{
+    display:flex; gap:18px; margin-top:16px; flex-wrap:wrap;
+    font-size:12.5px; color:rgba(255,255,255,0.85);
+  }
+  .hero .meta span{display:flex; align-items:center; gap:6px;}
+
+  /* ---------- Progress ---------- */
+  .progress-shell{
+    margin:0 0 22px;
+  }
+  .progress-label{
+    display:flex; justify-content:space-between;
+    font-size:12.5px; color:var(--ink-soft); margin-bottom:6px;
+    font-weight:600;
+  }
+  .progress-track{
+    width:100%; height:8px; background:var(--sage-light);
+    border-radius:999px; overflow:hidden;
+  }
+  .progress-fill{
+    height:100%; width:0%;
+    background: linear-gradient(90deg, var(--sage), var(--sage-dark));
+    border-radius:999px;
+    transition: width .35s ease;
+  }
+  .steps-nav{
+    display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;
+  }
+  .steps-nav .dot{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--line);
+  }
+  .steps-nav .dot.done{background:var(--sage);}
+  .steps-nav .dot.active{background:var(--sage-darker); transform:scale(1.25);}
+
+  /* ---------- Card / steps ---------- */
+  .card{
+    background:var(--white);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:28px 26px 26px;
+    border:1px solid var(--line);
+  }
+  .step{display:none;}
+  .step.active{display:block; animation: fadeIn .35s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  .step-title{
+    font-family:'Playfair Display', serif;
+    font-style:italic;
+    font-weight:700;
+    font-size:22px;
+    color:var(--sage-darker);
+    margin:0 0 4px;
+  }
+  .step-desc{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    margin:0 0 22px;
+  }
+
+  .field{margin-bottom:18px;}
+  .field label, .group-label{
+    display:block;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--ink);
+    margin-bottom:6px;
+  }
+  .field .hint{
+    font-size:12px; color:var(--ink-soft); font-weight:400; margin-top:4px;
+  }
+  .nose-toggle{
+    display:flex !important; align-items:center; gap:6px;
+    font-size:12px !important; font-weight:500 !important; color:var(--ink-soft) !important;
+    margin-top:7px; cursor:pointer;
+  }
+  .nose-toggle input{width:14px; height:14px; accent-color:var(--sage-dark); margin:0;}
+  input:disabled{background:var(--sage-pale); color:var(--ink-soft); cursor:not-allowed;}
+  input[type=text], input[type=number], input[type=tel], input[type=email], input[type=time], input[type=date], select, textarea{
+    width:100%;
+    padding:11px 13px;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    font-family:'Raleway',sans-serif;
+    font-size:14.5px;
+    color:var(--ink);
+    background:var(--white);
+    transition: border-color .2s, box-shadow .2s;
+  }
+  textarea{resize:vertical; min-height:70px;}
+  input:focus, select:focus, textarea:focus{
+    outline:none;
+    border-color:var(--sage);
+    box-shadow:0 0 0 3px rgba(134,168,137,0.22);
+  }
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;}
+  @media (max-width:560px){ .row, .row3{grid-template-columns:1fr;} }
+
+  fieldset{border:none; padding:0; margin:0;}
+
+  .choice-grid{
+    display:flex; flex-wrap:wrap; gap:8px;
+  }
+  .choice{
+    position:relative;
+  }
+  .choice input{position:absolute; opacity:0; width:0; height:0;}
+  .choice label{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:9px 15px;
+    border:1.5px solid var(--line);
+    border-radius:999px;
+    font-size:13.5px;
+    font-weight:500;
+    color:var(--ink-soft);
+    cursor:pointer;
+    background:var(--white);
+    transition: all .18s;
+    margin:0;
+  }
+  .choice input:checked + label{
+    background:var(--sage-light);
+    border-color:var(--sage);
+    color:var(--sage-darker);
+    font-weight:600;
+  }
+
+  .fam-table{
+    display:flex; flex-direction:column; gap:0;
+    border:1.5px solid var(--line);
+    border-radius:12px;
+    overflow:hidden;
+  }
+  .fam-row{
+    display:grid;
+    grid-template-columns: 1.5fr 1fr 1.4fr;
+    gap:10px;
+    align-items:center;
+    padding:11px 14px;
+    border-bottom:1px solid var(--line);
+    background:var(--white);
+  }
+  .fam-row:last-child{border-bottom:none;}
+  .fam-row:nth-child(even){background:var(--sage-pale);}
+  .fam-row .cond{font-size:13.5px; font-weight:600; color:var(--ink);}
+  .fam-row .yn{display:flex; gap:6px;}
+  .fam-row .yn label{
+    font-size:12px; padding:6px 10px; border-radius:999px; border:1.5px solid var(--line);
+    cursor:pointer; color:var(--ink-soft); font-weight:600;
+  }
+  .fam-row .yn input{position:absolute; opacity:0; width:0; height:0;}
+  .fam-row .yn input:checked + label{background:var(--sage); border-color:var(--sage); color:#fff;}
+  .fam-row input[type=text]{padding:7px 10px; font-size:13px;}
+  .fam-head{
+    display:grid; grid-template-columns: 1.5fr 1fr 1.4fr; gap:10px;
+    padding:9px 14px; background:var(--sage-darker); color:#fff;
+    font-size:11.5px; letter-spacing:0.5px; text-transform:uppercase; font-weight:700;
+  }
+  @media (max-width:560px){
+    .fam-row, .fam-head{grid-template-columns:1.2fr 0.8fr 1.2fr; font-size:12px;}
+  }
+
+  .meal-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px 16px;}
+  @media (max-width:560px){.meal-grid{grid-template-columns:1fr;}}
+  .meal-item label{font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:5px;}
+
+  .limit-card{
+    border:1.5px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:12px;
+    display:flex; gap:12px; align-items:flex-start;
+    background:var(--white);
+  }
+  .limit-card input[type=checkbox]{margin-top:3px; width:17px; height:17px; accent-color:var(--sage-dark); flex:0 0 auto;}
+  .limit-card .lc-body{flex:1;}
+  .limit-card .lc-title{font-weight:700; font-size:14px; margin-bottom:2px;}
+  .limit-card textarea{margin-top:8px; display:none;}
+  .limit-card.open textarea{display:block;}
+
+  .scale-field{background:var(--sage-pale); border:1px solid var(--line); border-radius:12px; padding:16px 18px;}
+  .scale-field input[type=range]{width:100%; accent-color:var(--sage-dark); height:6px; cursor:pointer; display:block;}
+  .scale-labels{display:flex; justify-content:space-between; align-items:center; margin-top:10px; font-size:12px; color:var(--ink-soft);}
+  .scale-value{
+    font-weight:700; color:var(--ink-soft); font-size:13px; background:var(--white); border:1px solid var(--line);
+    border-radius:999px; padding:3px 12px; text-align:center; transition: color .15s, border-color .15s;
+  }
+  .scale-field.touched .scale-value{color:var(--sage-darker); border-color:var(--sage); font-size:15px;}
+  .field.invalid .scale-field{outline:1.5px solid var(--error); outline-offset:2px; border-radius:12px;}
+
+  .consent{
+    display:flex; gap:10px; align-items:flex-start;
+    background:var(--sage-pale); border:1px solid var(--sage-light);
+    border-radius:12px; padding:14px 16px; margin-top:6px; font-size:12.8px; color:var(--ink-soft);
+  }
+  .consent input{margin-top:3px; width:16px; height:16px; accent-color:var(--sage-dark); flex:0 0 auto;}
+
+  /* ---------- Nav buttons ---------- */
+  .nav-buttons{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:26px; gap:12px;
+  }
+  button{
+    font-family:'Raleway',sans-serif;
+    font-weight:700;
+    font-size:14.5px;
+    border-radius:999px;
+    padding:13px 26px;
+    border:none;
+    cursor:pointer;
+    transition: transform .15s, box-shadow .15s, opacity .15s;
+  }
+  button:active{transform:scale(0.97);}
+  .btn-primary{
+    background: linear-gradient(135deg, var(--sage-dark), var(--sage-darker));
+    color:#fff;
+    box-shadow:0 6px 16px rgba(79,107,82,0.28);
+  }
+  .btn-primary:disabled{opacity:0.5; cursor:not-allowed;}
+  .btn-ghost{
+    background:transparent;
+    color:var(--ink-soft);
+    border:1.5px solid var(--line);
+  }
+  .btn-ghost:hover{border-color:var(--sage);}
+  .spacer{flex:1;}
+
+  .error-msg{
+    color:var(--error); font-size:12.5px; font-weight:600; margin-top:6px; display:none;
+  }
+  .field.invalid input, .field.invalid select, .field.invalid textarea{border-color:var(--error);}
+  .field.invalid .error-msg{display:block;}
+
+  /* ---------- Review / done ---------- */
+  .review-block{margin-bottom:16px;}
+  .review-block h4{
+    font-family:'Playfair Display', serif; font-style:italic; color:var(--sage-darker);
+    font-size:15.5px; margin:0 0 8px; border-bottom:1px dashed var(--line); padding-bottom:6px;
+  }
+  .review-row{display:flex; gap:8px; font-size:13px; padding:3px 0; color:var(--ink-soft);}
+  .review-row b{color:var(--ink); font-weight:600; min-width:150px;}
+
+  .done-screen{text-align:center; padding:30px 10px;}
+  .done-screen .icon{
+    width:64px; height:64px; border-radius:50%;
+    background:var(--sage-light); display:flex; align-items:center; justify-content:center;
+    margin:0 auto 16px;
+  }
+  .done-screen h2{
+    font-family:'Playfair Display', serif; font-style:italic; color:var(--sage-darker); font-size:24px; margin-bottom:8px;
+  }
+  .done-screen p{color:var(--ink-soft); font-size:14px; max-width:44ch; margin:0 auto 20px;}
+
+  footer{
+    text-align:center; font-size:11.5px; color:var(--ink-soft); margin-top:26px; opacity:0.75;
+  }
+
+  #status-banner{
+    display:none; padding:10px 14px; border-radius:10px; font-size:12.5px; font-weight:600;
+    margin-bottom:16px;
+  }
+  #status-banner.show{display:block;}
+  #status-banner.warn{background:#FBF2E4; color:#8A5A1E; border:1px solid #F1D9AE;}
+
+  .print-summary{display:none;}
+  @media print{
+    body::before{display:none;}
+    .hero .meta, .progress-shell, .nav-buttons, footer, #status-banner{display:none !important;}
+    #quiz-form, #done-card{display:none !important;}
+    .print-summary{display:block !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">
+    <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
+      <path d="M21 4C21 4 8 9 8 22C8 30.2843 13.9249 37 21 37C21 37 21 20 21 4Z" fill="#86A889" opacity="0.55"/>
+      <path d="M21 4C21 4 34 9 34 22C34 30.2843 28.0751 37 21 37C21 37 21 20 21 4Z" fill="#4F6B52"/>
+      <path d="M21 6V36" stroke="#F8F7F3" stroke-width="1" stroke-linecap="round"/>
+    </svg>
+    <div class="brand-text">
+      <span class="name">Erika Farías</span>
+      <span class="sub">Nutrición</span>
+    </div>
+  </div>
+
+  <div class="hero">
+    <h1>Historia Clínica Nutricional</h1>
+    <p>Este cuestionario me ayuda a conocerte y diseñar un plan de alimentación pensado para mejorar tu sensibilidad a la insulina y tus niveles de glucosa — sin dietas restrictivas ni eliminar los carbohidratos.</p>
+    <div class="meta">
+      <span>⏱ Toma entre 18 y 22 minutos</span>
+      <span>🔒 Tu información es confidencial</span>
+      <span>✓ No requiere estudios previos</span>
+    </div>
+  </div>
+
+  <div id="status-banner"></div>
+
+  <div class="progress-shell">
+    <div class="progress-label">
+      <span id="progress-text">Paso 1 de 9</span>
+      <span id="progress-pct">11%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="steps-nav" id="steps-nav"></div>
+  </div>
+
+  <form id="quiz-form" class="card" novalidate>
+
+    <!-- STEP 1: Datos personales -->
+    <section class="step active" data-step="1">
+      <h2 class="step-title">Cuéntame de ti</h2>
+      <p class="step-desc">Empecemos con tus datos generales.</p>
+
+      <div class="field">
+        <label for="nombre">Nombre completo *</label>
+        <input type="text" id="nombre" name="nombre" required placeholder="Ej. María López Hernández">
+        <div class="error-msg">Por favor escribe tu nombre completo.</div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="edad">Edad (años) *</label>
+          <input type="number" id="edad" name="edad" min="18" max="99" required placeholder="Ej. 38">
+          <div class="error-msg">Ingresa una edad válida.</div>
+        </div>
+        <div class="field">
+          <label for="telefono">Teléfono / WhatsApp *</label>
+          <input type="tel" id="telefono" name="telefono" required placeholder="Ej. 443 480 5489">
+          <div class="error-msg">Ingresa un teléfono de contacto.</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="peso">Peso actual (kg) *</label>
+          <input type="number" id="peso" name="peso" min="30" max="250" step="0.1" required placeholder="Ej. 68.5">
+          <label class="nose-toggle"><input type="checkbox" id="peso_nose" name="peso_no_se"> No lo sé</label>
+          <div class="error-msg">Ingresa un peso válido, o marca "No lo sé".</div>
+        </div>
+        <div class="field">
+          <label for="talla">Talla / estatura (cm) *</label>
+          <input type="number" id="talla" name="talla" min="130" max="210" required placeholder="Ej. 160">
+          <label class="nose-toggle"><input type="checkbox" id="talla_nose" name="talla_no_se"> No lo sé</label>
+          <div class="error-msg">Ingresa una estatura válida, o marca "No lo sé".</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="correo">Correo electrónico</label>
+        <input type="email" id="correo" name="correo" placeholder="tucorreo@ejemplo.com">
+      </div>
+
+      <div class="field">
+        <label for="objetivo">¿Cuál es tu principal objetivo? *</label>
+        <textarea id="objetivo" name="objetivo" required placeholder="Ej. Bajar mis niveles de glucosa, tener más energía, bajar de peso sin dejar de comer rico..."></textarea>
+        <div class="error-msg">Cuéntame brevemente tu objetivo.</div>
+      </div>
+    </section>
+
+    <!-- STEP 2: Antecedentes heredofamiliares -->
+    <section class="step" data-step="2">
+      <h2 class="step-title">Antecedentes heredofamiliares</h2>
+      <p class="step-desc">Marca si algún familiar directo (papá, mamá, hermanos/as, abuelos) ha tenido alguna de estas condiciones.</p>
+
+      <div class="fam-table" id="fam-table">
+        <div class="fam-head"><span>Condición</span><span>¿Algún familiar?</span><span>¿Quién / notas?</span></div>
+      </div>
+    </section>
+
+    <!-- STEP 3: Antecedentes personales patológicos -->
+    <section class="step" data-step="3">
+      <h2 class="step-title">Tus antecedentes de salud</h2>
+      <p class="step-desc">Esta información me ayuda a diseñar un plan seguro y adecuado para ti.</p>
+
+      <div class="field">
+        <label for="enfermedades">Enfermedades ya diagnosticadas</label>
+        <textarea id="enfermedades" name="enfermedades" placeholder="Ej. Resistencia a la insulina, hipotiroidismo, hipertensión... Si no tienes ninguna, escribe 'Ninguna'."></textarea>
+      </div>
+      <div class="field">
+        <label for="cirugias">Cirugías previas</label>
+        <textarea id="cirugias" name="cirugias" placeholder="Ej. Cesárea (2019), vesícula (2021)... Si no tienes, escribe 'Ninguna'."></textarea>
+      </div>
+      <div class="field">
+        <label for="lesiones">Lesiones o fracturas</label>
+        <textarea id="lesiones" name="lesiones" placeholder="Ej. Fractura de tobillo, lesión de rodilla... Si no tienes, escribe 'Ninguna'."></textarea>
+      </div>
+      <div class="field">
+        <label for="medicamentos">¿Tomas actualmente algún medicamento o suplemento?</label>
+        <textarea id="medicamentos" name="medicamentos" placeholder="Ej. Metformina, complejo B, vitamina D... Si no tomas ninguno, escribe 'Ninguno'."></textarea>
+      </div>
+      <div class="field">
+        <label for="alcohol_tabaco">¿Consumes alcohol o tabaco?</label>
+        <textarea id="alcohol_tabaco" name="alcohol_tabaco" placeholder="Ej. Alcohol ocasional los fines de semana, no fumo... Si no consumes ninguno, escribe 'Ninguno'."></textarea>
+      </div>
+    </section>
+
+    <!-- STEP 4: Antecedentes ginecológicos -->
+    <section class="step" data-step="4">
+      <h2 class="step-title">Antecedentes gineco-obstétricos</h2>
+      <p class="step-desc">Estos datos son clave para entender tu perfil hormonal y metabólico.</p>
+
+      <div class="field">
+        <span class="group-label">¿Usas actualmente algún método anticonceptivo? *</span>
+        <div class="choice-grid" id="anticonceptivo-group">
+          <div class="choice"><input type="radio" id="ac-si" name="anticonceptivo" value="Sí" required><label for="ac-si">Sí</label></div>
+          <div class="choice"><input type="radio" id="ac-no" name="anticonceptivo" value="No" required><label for="ac-no">No</label></div>
+        </div>
+        <div class="error-msg">Selecciona una opción.</div>
+      </div>
+
+      <div class="field" id="ac-cual-field" style="display:none;">
+        <label for="ac_cual">¿Cuál método utilizas?</label>
+        <input type="text" id="ac_cual" name="anticonceptivo_cual" placeholder="Ej. DIU hormonal, pastillas, inyección...">
+      </div>
+
+      <div class="field" id="ac-tiempo-field" style="display:none;">
+        <label for="ac_tiempo">¿Cuánto tiempo tienes usándolo?</label>
+        <input type="text" id="ac_tiempo" name="anticonceptivo_tiempo" placeholder="Ej. 6 meses, 2 años...">
+      </div>
+
+      <div class="field">
+        <span class="group-label">Tu periodo menstrual es: *</span>
+        <div class="choice-grid">
+          <div class="choice"><input type="radio" id="per-reg" name="periodo" value="Regular" required><label for="per-reg">Regular</label></div>
+          <div class="choice"><input type="radio" id="per-irreg" name="periodo" value="Irregular" required><label for="per-irreg">Irregular</label></div>
+          <div class="choice"><input type="radio" id="per-meno" name="periodo" value="Menopausia" required><label for="per-meno">Menopausia</label></div>
+          <div class="choice"><input type="radio" id="per-na" name="periodo" value="No aplica / otro" required><label for="per-na">No aplica</label></div>
+        </div>
+        <div class="error-msg">Selecciona una opción.</div>
+      </div>
+
+      <div class="field">
+        <label for="duracion_periodo">Duración aproximada de tu periodo (días)</label>
+        <input type="number" id="duracion_periodo" name="duracion_periodo" min="1" max="15" placeholder="Ej. 5">
+      </div>
+
+      <div class="field" id="periodo-frecuencia-field" style="display:none;">
+        <label for="periodo_frecuencia">¿Cada cuánto te llega tu periodo, aproximadamente?</label>
+        <input type="text" id="periodo_frecuencia" name="periodo_frecuencia" placeholder="Ej. Cada 20-25 días, muy variable, cada 2-3 meses...">
+      </div>
+    </section>
+
+    <!-- STEP 5: Hábitos nutricionales -->
+    <section class="step" data-step="5">
+      <h2 class="step-title">Tus hábitos nutricionales</h2>
+      <p class="step-desc">Así puedo armar un plan con alimentos que realmente disfrutes.</p>
+
+      <div class="field">
+        <label for="gustan">Alimentos que más te gustan *</label>
+        <textarea id="gustan" name="alimentos_gustan" required placeholder="Ej. Pollo, frijoles, aguacate, fruta, tortillas de maíz..."></textarea>
+        <div class="error-msg">Cuéntame qué alimentos te gustan.</div>
+      </div>
+      <div class="field">
+        <label for="no-gustan">Alimentos que no te gustan o evitas</label>
+        <textarea id="no-gustan" name="alimentos_no_gustan" placeholder="Ej. Pescado, brócoli, hígado..."></textarea>
+      </div>
+      <div class="field">
+        <label for="alergias">Alergias o intolerancias alimentarias</label>
+        <textarea id="alergias" name="alergias" placeholder="Ej. Intolerancia a la lactosa, alergia a los mariscos... Si no tienes, escribe 'Ninguna'."></textarea>
+      </div>
+
+      <div class="field">
+        <span class="group-label">¿Rolas turno (tu horario de trabajo cambia según el día)? *</span>
+        <div class="choice-grid">
+          <div class="choice"><input type="radio" id="turno-si" name="rola_turno" value="Sí" required><label for="turno-si">Sí</label></div>
+          <div class="choice"><input type="radio" id="turno-no" name="rola_turno" value="No" required><label for="turno-no">No</label></div>
+        </div>
+        <div class="error-msg">Selecciona una opción.</div>
+      </div>
+
+      <div class="field" id="turno-dias-field" style="display:none;">
+        <label for="turno_dias">¿Qué días de la semana tienes cada turno?</label>
+        <textarea id="turno_dias" name="turno_dias" placeholder="Ej. Lunes, miércoles y viernes turno matutino; martes, jueves y sábado turno nocturno..."></textarea>
+      </div>
+
+      <div class="field">
+        <span class="group-label" id="horario1-label">Horarios habituales de comida</span>
+        <div class="meal-grid">
+          <div class="meal-item">
+            <label for="h-desayuno">Desayuno</label>
+            <input type="time" id="h-desayuno" name="horario_desayuno">
+          </div>
+          <div class="meal-item">
+            <label for="h-colacion1">Colación matutina</label>
+            <input type="time" id="h-colacion1" name="horario_colacion_am">
+          </div>
+          <div class="meal-item">
+            <label for="h-comida">Comida</label>
+            <input type="time" id="h-comida" name="horario_comida">
+          </div>
+          <div class="meal-item">
+            <label for="h-colacion2">Colación vespertina</label>
+            <input type="time" id="h-colacion2" name="horario_colacion_pm">
+          </div>
+          <div class="meal-item">
+            <label for="h-cena">Cena</label>
+            <input type="time" id="h-cena" name="horario_cena">
+          </div>
+        </div>
+      </div>
+
+      <div class="field" id="horario2-field" style="display:none;">
+        <span class="group-label">Horarios de comida en tu otro turno</span>
+        <div class="hint" style="margin-bottom:10px;">Como tus horarios cambian según el turno, cuéntame también cómo son en tu(s) otro(s) turno(s).</div>
+        <div class="meal-grid">
+          <div class="meal-item">
+            <label for="h2-desayuno">Desayuno</label>
+            <input type="time" id="h2-desayuno" name="horario_desayuno_2">
+          </div>
+          <div class="meal-item">
+            <label for="h2-colacion1">Colación matutina</label>
+            <input type="time" id="h2-colacion1" name="horario_colacion_am_2">
+          </div>
+          <div class="meal-item">
+            <label for="h2-comida">Comida</label>
+            <input type="time" id="h2-comida" name="horario_comida_2">
+          </div>
+          <div class="meal-item">
+            <label for="h2-colacion2">Colación vespertina</label>
+            <input type="time" id="h2-colacion2" name="horario_colacion_pm_2">
+          </div>
+          <div class="meal-item">
+            <label for="h2-cena">Cena</label>
+            <input type="time" id="h2-cena" name="horario_cena_2">
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="dia_habitual">Describe qué comes en un día habitual, desde que despiertas hasta que te duermes *</label>
+        <textarea id="dia_habitual" name="dia_habitual" required placeholder="Usa medidas caseras, ej: Desayuno 2 piezas de tortilla con 1 huevo. Colación 1 manzana. Comida 1 pieza de pollo con arroz y verduras. Cena un té con pan..."></textarea>
+        <div class="error-msg">Cuéntame cómo es un día típico de comidas para ti.</div>
+      </div>
+    </section>
+
+    <!-- STEP 6: Actividad física -->
+    <section class="step" data-step="6">
+      <h2 class="step-title">Actividad física</h2>
+      <p class="step-desc">El movimiento es un gran aliado para mejorar tu sensibilidad a la insulina.</p>
+
+      <div class="row">
+        <div class="field">
+          <label for="dias_entrena">¿Cuántos días a la semana entrenas? *</label>
+          <select id="dias_entrena" name="dias_entrena_semana" required>
+            <option value="">Selecciona...</option>
+            <option value="0">0 días (no entreno actualmente)</option>
+            <option value="1">1 día</option>
+            <option value="2">2 días</option>
+            <option value="3">3 días</option>
+            <option value="4">4 días</option>
+            <option value="5">5 días</option>
+            <option value="6">6 días</option>
+            <option value="7">7 días</option>
+          </select>
+          <div class="error-msg">Selecciona una opción.</div>
+        </div>
+        <div class="field">
+          <label for="tiempo_entrena">¿Cuánto tiempo por sesión? (minutos)</label>
+          <input type="number" id="tiempo_entrena" name="tiempo_por_sesion" min="0" max="300" placeholder="Ej. 45">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="tipo_actividad">¿Qué tipo de actividad realizas?</label>
+        <textarea id="tipo_actividad" name="tipo_actividad" placeholder="Ej. Caminata, pesas, yoga, baile, natación... Si no realizas ninguna, escribe 'Ninguna por ahora'."></textarea>
+      </div>
+
+      <div class="field">
+        <label for="tiempo_caminata">¿Cuánto tiempo caminas o qué distancia recorres en un día habitual?</label>
+        <input type="text" id="tiempo_caminata" name="tiempo_caminata" placeholder="Ej. 30 minutos, unos 3 km, casi nada...">
+      </div>
+
+      <div class="field">
+        <label for="tiempo_sentada">¿Cuánto tiempo pasas sentada al día? (horas aproximadas)</label>
+        <input type="number" id="tiempo_sentada" name="tiempo_sentada" min="0" max="24" step="0.5" placeholder="Ej. 8">
+      </div>
+
+      <div class="field">
+        <label class="nose-toggle" style="margin-top:0;"><input type="checkbox" id="mas-actividad-toggle"> Realizo más de un tipo de actividad a la semana (ej. gimnasio y yoga)</label>
+      </div>
+
+      <div id="actividad-extra-fields" style="display:none;">
+        <div class="field">
+          <label for="tipo_actividad_2">¿Qué otra actividad realizas?</label>
+          <input type="text" id="tipo_actividad_2" name="tipo_actividad_2" placeholder="Ej. Yoga">
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="dias_entrena_2">¿Cuántos días a la semana?</label>
+            <select id="dias_entrena_2" name="dias_entrena_semana_2">
+              <option value="">Selecciona...</option>
+              <option value="1">1 día</option>
+              <option value="2">2 días</option>
+              <option value="3">3 días</option>
+              <option value="4">4 días</option>
+              <option value="5">5 días</option>
+              <option value="6">6 días</option>
+              <option value="7">7 días</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="tiempo_entrena_2">¿Cuánto tiempo por sesión? (minutos)</label>
+            <input type="number" id="tiempo_entrena_2" name="tiempo_por_sesion_2" min="0" max="300" placeholder="Ej. 60">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 7: Sueño y estrés -->
+    <section class="step" data-step="7">
+      <h2 class="step-title">Sueño y estrés</h2>
+      <p class="step-desc">El descanso y el estrés influyen directamente en tus niveles de glucosa y en tu apetito.</p>
+
+      <div class="field">
+        <label for="horas_sueno">¿Cuántas horas duermes en promedio por noche? *</label>
+        <input type="number" id="horas_sueno" name="horas_sueno" min="0" max="14" step="0.5" required placeholder="Ej. 6.5">
+        <div class="error-msg">Ingresa un número de horas.</div>
+      </div>
+
+      <div class="field">
+        <span class="group-label">¿Cómo percibes la calidad de tu sueño? *</span>
+        <div class="choice-grid">
+          <div class="choice"><input type="radio" id="sueno-mala" name="calidad_sueno" value="Mala" required><label for="sueno-mala">Mala</label></div>
+          <div class="choice"><input type="radio" id="sueno-regular" name="calidad_sueno" value="Regular" required><label for="sueno-regular">Regular</label></div>
+          <div class="choice"><input type="radio" id="sueno-buena" name="calidad_sueno" value="Buena" required><label for="sueno-buena">Buena</label></div>
+          <div class="choice"><input type="radio" id="sueno-excelente" name="calidad_sueno" value="Excelente" required><label for="sueno-excelente">Excelente</label></div>
+        </div>
+        <div class="error-msg">Selecciona una opción.</div>
+      </div>
+
+      <div class="field" style="margin-top:26px; border-top:1px dashed var(--line); padding-top:20px;">
+        <span class="group-label" style="font-size:14.5px;">Sobre tu nivel de estrés (últimas 4 semanas)</span>
+        <div class="hint" style="margin-bottom:10px;">Estas 4 preguntas son una versión breve y validada para medir estrés percibido.</div>
+      </div>
+
+      <div class="field">
+        <span class="group-label">1. ¿Qué tan seguido has sentido que no podías controlar las cosas importantes de tu vida? *</span>
+        <div class="choice-grid" id="estres1-group">
+          <div class="choice"><input type="radio" id="estres1-0" name="estres_control" value="Nunca" required><label for="estres1-0">Nunca</label></div>
+          <div class="choice"><input type="radio" id="estres1-1" name="estres_control" value="Casi nunca" required><label for="estres1-1">Casi nunca</label></div>
+          <div class="choice"><input type="radio" id="estres1-2" name="estres_control" value="A veces" required><label for="estres1-2">A veces</label></div>
+          <div class="choice"><input type="radio" id="estres1-3" name="estres_control" value="Frecuentemente" required><label for="estres1-3">Frecuentemente</label></div>
+          <div class="choice"><input type="radio" id="estres1-4" name="estres_control" value="Muy frecuentemente" required><label for="estres1-4">Muy frecuentemente</label></div>
+        </div>
+        <div class="error-msg">Selecciona una opción.</div>
+      </div>
+
+      <div class="field">
+        <span class="group-label">2. ¿Qué tan seguido has sentido que las dificultades se acumulan tanto que no puedes superarlas? *</span>
+        <div class="choice-grid">
+          <div class="choice"><input type="radio" id="estres4-0" name="estres_dificultades" value="Nunca" required><label for="estres4-0">Nunca</label></div>
+          <div class="choice"><input type="radio" id="estres4-1" name="estres_dificultades" value="Casi nunca" required><label for="estres4-1">Casi nunca</label></div>
+          <div class="choice"><input type="radio" id="estres4-2" name="estres_dificultades" value="A veces" required><label for="estres4-2">A veces</label></div>
+          <div class="choice"><input type="radio" id="estres4-3" name="estres_dificultades" value="Frecuentemente" required><label for="estres4-3">Frecuentemente</label></div>
+          <div class="choice"><input type="radio" id="estres4-4" name="estres_dificultades" value="Muy frecuentemente" required><label for="estres4-4">Muy frecuentemente</label></div>
+        </div>
+        <div class="error-msg">Selecciona una opción.</div>
+      </div>
+
+      <div class="field">
+        <span class="group-label">3. ¿Qué tan preocupada estás por tu futuro? *</span>
+        <div class="scale-field" id="scale-futuro">
+          <input type="range" id="estres_preocupacion_futuro" name="estres_preocupacion_futuro" min="0" max="10" step="1" value="5" required data-touched="false">
+          <div class="scale-labels">
+            <span>0 · Nada</span>
+            <span class="scale-value" id="estres_preocupacion_futuro-val">Desliza para responder</span>
+            <span>10 · Mucho</span>
+          </div>
+        </div>
+        <div class="error-msg">Desliza la barra para responder.</div>
+      </div>
+
+      <div class="field">
+        <span class="group-label">4. ¿Sueles sentirte presionada la mayor parte del tiempo? *</span>
+        <div class="scale-field" id="scale-presion">
+          <input type="range" id="estres_presion" name="estres_presion" min="0" max="10" step="1" value="5" required data-touched="false">
+          <div class="scale-labels">
+            <span>0 · Nada</span>
+            <span class="scale-value" id="estres_presion-val">Desliza para responder</span>
+            <span>10 · Mucho</span>
+          </div>
+        </div>
+        <div class="error-msg">Desliza la barra para responder.</div>
+      </div>
+
+      <div class="field">
+        <span class="group-label">5. ¿Consideras tener una rutina saturada en tu día a día? *</span>
+        <div class="choice-grid">
+          <div class="choice"><input type="radio" id="rutina-0" name="rutina_saturada" value="Nada" required><label for="rutina-0">Nada</label></div>
+          <div class="choice"><input type="radio" id="rutina-1" name="rutina_saturada" value="Poco" required><label for="rutina-1">Poco</label></div>
+          <div class="choice"><input type="radio" id="rutina-2" name="rutina_saturada" value="Regular" required><label for="rutina-2">Regular</label></div>
+          <div class="choice"><input type="radio" id="rutina-3" name="rutina_saturada" value="Saturada" required><label for="rutina-3">Saturada</label></div>
+          <div class="choice"><input type="radio" id="rutina-4" name="rutina_saturada" value="Muy saturada" required><label for="rutina-4">Muy saturada</label></div>
+        </div>
+        <div class="error-msg">Selecciona una opción.</div>
+      </div>
+    </section>
+
+    <!-- STEP 8: Limitantes -->
+    <section class="step" data-step="8">
+      <h2 class="step-title">¿Qué te ha detenido antes?</h2>
+      <p class="step-desc">Identificar tus limitantes me ayuda a diseñar un plan realista, que sí puedas sostener. Marca las que apliquen.</p>
+
+      <div class="limit-card" data-limit="tiempo">
+        <input type="checkbox" id="lim-tiempo" name="limitante_tiempo">
+        <div class="lc-body">
+          <label class="lc-title" for="lim-tiempo">Tiempo</label>
+          <div class="hint">Sientes que no te alcanza el tiempo para cocinar, planear o comer bien.</div>
+          <textarea name="limitante_tiempo_detalle" placeholder="Cuéntame más (opcional)..."></textarea>
+        </div>
+      </div>
+
+      <div class="limit-card" data-limit="organizacion">
+        <input type="checkbox" id="lim-organizacion" name="limitante_organizacion">
+        <div class="lc-body">
+          <label class="lc-title" for="lim-organizacion">Organización</label>
+          <div class="hint">Te cuesta planear tus comidas, hacer despensa o mantener una rutina.</div>
+          <textarea name="limitante_organizacion_detalle" placeholder="Cuéntame más (opcional)..."></textarea>
+        </div>
+      </div>
+
+      <div class="limit-card" data-limit="creencias">
+        <input type="checkbox" id="lim-creencias" name="limitante_creencias">
+        <div class="lc-body">
+          <label class="lc-title" for="lim-creencias">Creencias</label>
+          <div class="hint">Tienes ideas previas sobre dietas, carbohidratos o "lo que se puede y no se puede comer" que te han limitado.</div>
+          <textarea name="limitante_creencias_detalle" placeholder="Cuéntame más (opcional)..."></textarea>
+        </div>
+      </div>
+
+      <div class="limit-card" data-limit="otro">
+        <input type="checkbox" id="lim-otro" name="limitante_otro">
+        <div class="lc-body">
+          <label class="lc-title" for="lim-otro">Otro</label>
+          <div class="hint">Cualquier otra cosa que sientas que te ha detenido.</div>
+          <textarea name="limitante_otro_detalle" placeholder="Cuéntame más (opcional)..."></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 9: Revisión -->
+    <section class="step" data-step="9">
+      <h2 class="step-title">Revisa tus respuestas</h2>
+      <p class="step-desc">Verifica que todo esté correcto antes de enviar.</p>
+      <div id="review-container"></div>
+
+      <div class="consent">
+        <input type="checkbox" id="consent" name="consentimiento" required>
+        <label for="consent">Autorizo que esta información sea utilizada por Erika Farías (Especialista en Nutrición, Activación Física y Salud, Cédula 11975217) exclusivamente para el diseño de mi plan de alimentación. Entiendo que mis datos son confidenciales y no serán compartidos con terceros. *</label>
+      </div>
+    </section>
+
+  </form>
+
+  <div class="nav-buttons" id="nav-buttons">
+    <button type="button" class="btn-ghost" id="btn-prev">← Atrás</button>
+    <span class="spacer"></span>
+    <button type="button" class="btn-primary" id="btn-next">Siguiente →</button>
+  </div>
+
+  <div class="card" id="done-card" style="display:none;">
+    <div class="done-screen">
+      <div class="icon">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17L4 12" stroke="#4F6B52" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h2>¡Gracias, <span id="done-name"></span>!</h2>
+      <p>Recibí tu historia clínica nutricional correctamente. La revisaré antes de tu cita para diseñar un plan pensado para ti — sin restricciones ni dietas genéricas.</p>
+      <button type="button" class="btn-ghost" id="btn-print">Descargar / imprimir mi resumen (PDF)</button>
+    </div>
+  </div>
+
+  <footer>Erika Farías · Especialista en Nutrición, Activación Física y Salud · Cédula Profesional 11975217 · Este cuestionario no sustituye una consulta médica.</footer>
+
+  <div class="print-summary" id="print-summary">
+    <h1 style="font-family:'Playfair Display',serif; font-style:italic; color:#4F6B52; margin-bottom:2px;">Historia Clínica Nutricional</h1>
+    <p style="font-size:12px; color:#5B5F52; margin-top:0;">Erika Farías · Especialista en Nutrición, Activación Física y Salud · Cédula Profesional 11975217</p>
+    <p style="font-size:12px; color:#5B5F52;" id="print-date"></p>
+    <hr style="border:none; border-top:1px solid #DDE3D6; margin:14px 0;">
+    <div id="print-review-content"></div>
+  </div>
+</div>
+
+<script>
+/* ============ CONFIG ============ */
+const CONFIG = {
+  // Pega aquí la URL y la llave "anon public" de tu proyecto de Supabase (ver instrucciones).
+  SUPABASE_URL: "PEGA_AQUI_TU_SUPABASE_URL",
+  SUPABASE_ANON_KEY: "PEGA_AQUI_TU_SUPABASE_ANON_KEY",
+  TABLE: "historia_clinica"
+};
+
+/* ============ Antecedentes familiares data ============ */
+const FAM_CONDITIONS = [
+  {key:"dm", label:"Diabetes Mellitus (DM)"},
+  {key:"has", label:"Hipertensión Arterial (HAS)"},
+  {key:"ca", label:"Cáncer"},
+  {key:"hepatica", label:"Enfermedades hepáticas"},
+  {key:"renal", label:"Enfermedades renales"},
+  {key:"tiroidea", label:"Enfermedades tiroideas", hint:"hipotiroidismo, hipertiroidismo"},
+  {key:"ginecologica", label:"Enfermedades ginecológicas", hint:"SOMP, endometriosis, etc."}
+];
+
+const famTable = document.getElementById('fam-table');
+FAM_CONDITIONS.forEach(c=>{
+  const row = document.createElement('div');
+  row.className = 'fam-row';
+  row.innerHTML = `
+    <span class="cond">${c.label}${c.hint ? `<br><span style="font-weight:400;color:var(--ink-soft);font-size:11px;">${c.hint}</span>` : ''}</span>
+    <span class="yn">
+      <input type="radio" id="fam-${c.key}-si" name="fam_${c.key}" value="Sí" required>
+      <label for="fam-${c.key}-si">Sí</label>
+      <input type="radio" id="fam-${c.key}-no" name="fam_${c.key}" value="No" required>
+      <label for="fam-${c.key}-no">No</label>
+    </span>
+    <input type="text" name="fam_${c.key}_quien" placeholder="¿Quién? (ej. mamá)">
+  `;
+  famTable.appendChild(row);
+});
+
+/* ============ Step navigation ============ */
+const steps = Array.from(document.querySelectorAll('.step'));
+const totalSteps = steps.length;
+let current = 1;
+
+const stepsNav = document.getElementById('steps-nav');
+for(let i=1;i<=totalSteps;i++){
+  const d = document.createElement('div');
+  d.className = 'dot';
+  d.dataset.step = i;
+  stepsNav.appendChild(d);
+}
+
+function renderProgress(){
+  const pct = Math.round((current/totalSteps)*100);
+  document.getElementById('progress-fill').style.width = pct+'%';
+  document.getElementById('progress-text').textContent = `Paso ${current} de ${totalSteps}`;
+  document.getElementById('progress-pct').textContent = pct+'%';
+  document.querySelectorAll('.steps-nav .dot').forEach(d=>{
+    const s = parseInt(d.dataset.step);
+    d.classList.toggle('active', s===current);
+    d.classList.toggle('done', s<current);
+  });
+}
+
+function showStep(n){
+  steps.forEach(s=> s.classList.toggle('active', parseInt(s.dataset.step)===n));
+  document.getElementById('btn-prev').style.visibility = n===1 ? 'hidden' : 'visible';
+  const btnNext = document.getElementById('btn-next');
+  btnNext.textContent = n===totalSteps ? 'Enviar cuestionario ✓' : 'Siguiente →';
+  if(n === totalSteps) buildReview();
+  renderProgress();
+  window.scrollTo({top: document.querySelector('.card').offsetTop - 20, behavior:'smooth'});
+}
+
+function validateStep(n){
+  const stepEl = steps[n-1];
+  let valid = true;
+  stepEl.querySelectorAll('[required]').forEach(input=>{
+    const field = input.closest('.field') || input.closest('.choice-grid')?.parentElement;
+    let ok = true;
+    if(input.type === 'radio'){
+      const group = stepEl.querySelectorAll(`[name="${input.name}"]`);
+      ok = Array.from(group).some(r=>r.checked);
+    } else if(input.type === 'checkbox'){
+      ok = input.checked;
+    } else if(input.type === 'range'){
+      ok = input.dataset.touched === 'true';
+    } else {
+      ok = input.value.trim() !== '';
+    }
+    if(!ok){
+      valid = false;
+      if(field) field.classList.add('invalid');
+      else input.closest('.consent')?.style.setProperty('outline','1.5px solid var(--error)');
+    } else {
+      if(field) field.classList.remove('invalid');
+    }
+  });
+  return valid;
+}
+
+document.getElementById('btn-next').addEventListener('click', ()=>{
+  if(!validateStep(current)){
+    document.querySelector('.step.active .invalid')?.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+  if(current === totalSteps){
+    submitForm();
+    return;
+  }
+  current++;
+  showStep(current);
+});
+
+document.getElementById('btn-prev').addEventListener('click', ()=>{
+  if(current>1){ current--; showStep(current); }
+});
+
+/* toggle "No lo sé" for peso / talla */
+function setupNoSeToggle(checkboxId, inputId){
+  const cb = document.getElementById(checkboxId);
+  const input = document.getElementById(inputId);
+  cb.addEventListener('change', ()=>{
+    if(cb.checked){
+      input.disabled = true;
+      input.required = false;
+      input.value = '';
+      input.closest('.field').classList.remove('invalid');
+    } else {
+      input.disabled = false;
+      input.required = true;
+    }
+  });
+}
+setupNoSeToggle('peso_nose', 'peso');
+setupNoSeToggle('talla_nose', 'talla');
+
+/* toggle anticonceptivo detail field */
+document.querySelectorAll('input[name="anticonceptivo"]').forEach(r=>{
+  r.addEventListener('change', ()=>{
+    const show = (r.value==='Sí' && r.checked) ? 'block' : 'none';
+    document.getElementById('ac-cual-field').style.display = show;
+    document.getElementById('ac-tiempo-field').style.display = show;
+  });
+});
+
+/* toggle rola turno -> horarios y días */
+document.querySelectorAll('input[name="rola_turno"]').forEach(r=>{
+  r.addEventListener('change', ()=>{
+    const rolaSi = (r.value==='Sí' && r.checked);
+    document.getElementById('turno-dias-field').style.display = rolaSi ? 'block' : 'none';
+    document.getElementById('horario2-field').style.display = rolaSi ? 'block' : 'none';
+    document.getElementById('horario1-label').textContent = rolaSi ? 'Horarios de comida en tu turno principal' : 'Horarios habituales de comida';
+  });
+});
+
+/* toggle segunda actividad física */
+document.getElementById('mas-actividad-toggle').addEventListener('change', (e)=>{
+  document.getElementById('actividad-extra-fields').style.display = e.target.checked ? 'block' : 'none';
+});
+
+/* toggle periodo irregular -> frecuencia field */
+document.querySelectorAll('input[name="periodo"]').forEach(r=>{
+  r.addEventListener('change', ()=>{
+    document.getElementById('periodo-frecuencia-field').style.display = (r.value==='Irregular' && r.checked) ? 'block' : 'none';
+  });
+});
+
+/* toggle limitante textareas */
+document.querySelectorAll('.limit-card input[type=checkbox]').forEach(cb=>{
+  cb.addEventListener('change', ()=>{
+    cb.closest('.limit-card').classList.toggle('open', cb.checked);
+  });
+});
+
+/* sliders 0-10: mostrar el valor solo después de que la persona interactúe */
+document.querySelectorAll('.scale-field input[type=range]').forEach(range=>{
+  const valEl = document.getElementById(range.id + '-val');
+  const markTouched = ()=>{
+    range.dataset.touched = 'true';
+    range.closest('.scale-field').classList.add('touched');
+    if(valEl) valEl.textContent = range.value;
+    range.closest('.field')?.classList.remove('invalid');
+  };
+  range.addEventListener('input', markTouched);
+  range.addEventListener('change', markTouched);
+});
+
+/* ============ Review screen ============ */
+const REVIEW_MAP = [
+  {title:"Datos personales", fields:[
+    ["nombre","Nombre"],["edad","Edad"],["telefono","Teléfono"],["correo","Correo"],
+    ["peso","Peso (kg)"],["talla","Talla (cm)"],["objetivo","Objetivo"]
+  ]},
+  {title:"Antecedentes heredofamiliares", fields: FAM_CONDITIONS.flatMap(c=>[
+    [`fam_${c.key}`, c.label], [`fam_${c.key}_quien`, "→ ¿Quién?"]
+  ])},
+  {title:"Antecedentes personales patológicos", fields:[
+    ["enfermedades","Enfermedades diagnosticadas"],["cirugias","Cirugías"],["lesiones","Lesiones / fracturas"],
+    ["medicamentos","Medicamentos / suplementos"],["alcohol_tabaco","Alcohol / tabaco"]
+  ]},
+  {title:"Antecedentes gineco-obstétricos", fields:[
+    ["anticonceptivo","Usa anticonceptivo"],["anticonceptivo_cual","¿Cuál?"],["anticonceptivo_tiempo","Tiempo usándolo"],
+    ["periodo","Periodo"],["periodo_frecuencia","Frecuencia del periodo"],["duracion_periodo","Duración (días)"]
+  ]},
+  {title:"Hábitos nutricionales", fields:[
+    ["alimentos_gustan","Le gustan"],["alimentos_no_gustan","No le gustan"],["alergias","Alergias/intolerancias"],
+    ["rola_turno","Rola turno"],["turno_dias","Días por turno"],
+    ["horario_desayuno","Desayuno"],["horario_colacion_am","Colación AM"],["horario_comida","Comida"],
+    ["horario_colacion_pm","Colación PM"],["horario_cena","Cena"],
+    ["horario_desayuno_2","Desayuno (otro turno)"],["horario_colacion_am_2","Colación AM (otro turno)"],["horario_comida_2","Comida (otro turno)"],
+    ["horario_colacion_pm_2","Colación PM (otro turno)"],["horario_cena_2","Cena (otro turno)"],
+    ["dia_habitual","Día habitual de alimentación"]
+  ]},
+  {title:"Actividad física", fields:[
+    ["dias_entrena_semana","Días/semana"],["tiempo_por_sesion","Minutos/sesión"],["tipo_actividad","Tipo de actividad"],
+    ["tipo_actividad_2","Otra actividad"],["dias_entrena_semana_2","Días/semana (otra actividad)"],["tiempo_por_sesion_2","Minutos/sesión (otra actividad)"],
+    ["tiempo_caminata","Caminata en un día habitual"],["tiempo_sentada","Horas sentada al día"]
+  ]},
+  {title:"Sueño y estrés", fields:[
+    ["horas_sueno","Horas de sueño"],["calidad_sueno","Calidad percibida"],
+    ["estres_control","Estrés — control de cosas importantes"],["estres_dificultades","Estrés — dificultades acumuladas"],
+    ["estres_preocupacion_futuro","Preocupación por el futuro (0-10)"],["estres_presion","Se siente presionada (0-10)"],
+    ["rutina_saturada","Rutina saturada"]
+  ]},
+  {title:"Limitantes", fields:[
+    ["limitante_tiempo","Tiempo"],["limitante_tiempo_detalle","→ Detalle"],
+    ["limitante_organizacion","Organización"],["limitante_organizacion_detalle","→ Detalle"],
+    ["limitante_creencias","Creencias"],["limitante_creencias_detalle","→ Detalle"],
+    ["limitante_otro","Otro"],["limitante_otro_detalle","→ Detalle"]
+  ]}
+];
+
+function getFormValue(name){
+  if(name === 'peso' && document.getElementById('peso_nose').checked) return 'No lo sé';
+  if(name === 'talla' && document.getElementById('talla_nose').checked) return 'No lo sé';
+  const form = document.getElementById('quiz-form');
+  const els = form.querySelectorAll(`[name="${CSS.escape(name)}"]`);
+  if(!els.length) return '';
+  if(els[0].type === 'radio'){
+    const checked = Array.from(els).find(e=>e.checked);
+    return checked ? checked.value : '';
+  }
+  if(els[0].type === 'checkbox'){
+    return els[0].checked ? 'Sí' : 'No';
+  }
+  return els[0].value.trim();
+}
+
+function buildReview(){
+  const container = document.getElementById('review-container');
+  container.innerHTML = '';
+  REVIEW_MAP.forEach(block=>{
+    const rows = block.fields
+      .map(([name,label])=>[label, getFormValue(name)])
+      .filter(([label,val])=> !(label.startsWith('→') && !val) );
+    if(!rows.some(([,val])=>val)) return;
+    const div = document.createElement('div');
+    div.className = 'review-block';
+    div.innerHTML = `<h4>${block.title}</h4>` + rows.map(([label,val])=>
+      val ? `<div class="review-row"><b>${label}</b><span>${escapeHtml(val)}</span></div>` : ''
+    ).join('');
+    container.appendChild(div);
+  });
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+/* ============ Submit ============ */
+function collectAllData(){
+  const form = document.getElementById('quiz-form');
+  const data = {};
+  new FormData(form).forEach((val,key)=>{ data[key] = val; });
+  // ensure checkboxes not in FormData when unchecked are recorded as "No"
+  form.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    if(!(cb.name in data)) data[cb.name] = 'No'; else data[cb.name] = 'Sí';
+  });
+  if(document.getElementById('peso_nose').checked) data.peso = 'No lo sé';
+  if(document.getElementById('talla_nose').checked) data.talla = 'No lo sé';
+  data['fecha_envio'] = new Date().toLocaleString('es-MX');
+  return data;
+}
+
+function showBanner(msg, type){
+  const b = document.getElementById('status-banner');
+  b.textContent = msg;
+  b.className = 'show ' + (type||'');
+}
+
+function submitForm(){
+  const btn = document.getElementById('btn-next');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  const data = collectAllData();
+  window.__lastSubmission = data;
+
+  const finish = ()=>{
+    document.getElementById('quiz-form').style.display = 'none';
+    document.getElementById('nav-buttons').style.display = 'none';
+    document.querySelector('.progress-shell').style.display = 'none';
+    document.getElementById('done-card').style.display = 'block';
+    document.getElementById('done-name').textContent = data.nombre || '';
+    document.getElementById('print-review-content').innerHTML = document.getElementById('review-container').innerHTML;
+    document.getElementById('print-date').textContent = 'Fecha: ' + data.fecha_envio;
+  };
+
+  if(!CONFIG.SUPABASE_URL || CONFIG.SUPABASE_URL.indexOf('PEGA_AQUI') !== -1){
+    showBanner('⚠ Aún no se ha conectado este formulario a Supabase. Las respuestas no se están guardando automáticamente todavía — revisa las instrucciones de configuración.', 'warn');
+    btn.disabled = false;
+    btn.textContent = 'Enviar cuestionario ✓';
+    finish();
+    return;
+  }
+
+  const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+  supabase.from(CONFIG.TABLE).insert([data])
+  .then(({ error })=>{
+    if(error){
+      showBanner('⚠ Hubo un problema al enviar tus respuestas. Por favor descarga tu resumen en PDF y compártelo directamente.', 'warn');
+    }
+    finish();
+  })
+  .catch(()=>{
+    showBanner('⚠ Hubo un problema de conexión al enviar. Por favor descarga tu resumen en PDF y compártelo directamente.', 'warn');
+    finish();
+  })
+  .finally(()=>{
+    btn.disabled = false;
+    btn.textContent = 'Enviar cuestionario ✓';
+  });
+}
+
+document.getElementById('btn-print').addEventListener('click', ()=>{
+  window.print();
+});
+
+showStep(current);
+</script>
+</body>
+</html>

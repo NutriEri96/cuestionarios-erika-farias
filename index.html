@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Erika Farías Nutrición | Cuestionarios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sage:#86A889; --sage-dark:#4F6B52; --sage-darker:#3A4F3C;
+    --sage-light:#E8EFE6; --sage-pale:#F4F7F2; --paper:#F8F7F3;
+    --ink:#26291F; --ink-soft:#5B5F52; --line:#DDE3D6; --white:#FFFFFF;
+    --radius:14px; --shadow: 0 6px 24px rgba(58,79,60,0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:'Raleway',sans-serif; background:var(--paper); color:var(--ink); line-height:1.5;}
+  .wrap{max-width:640px; margin:0 auto; padding:40px 20px 80px;}
+  .brand{display:flex; align-items:center; gap:14px; margin-bottom:24px; justify-content:center;}
+  .brand svg{flex:0 0 auto;}
+  .brand-text{display:flex; flex-direction:column; line-height:1.05;}
+  .brand-text .name{font-family:'Playfair Display', serif; font-style:italic; font-weight:700; font-size:30px; color:var(--sage-darker);}
+  .brand-text .sub{font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--ink-soft); margin-top:2px;}
+  h1{text-align:center; font-family:'Playfair Display', serif; font-style:italic; font-weight:600; font-size:22px; color:var(--sage-darker); margin:0 0 8px;}
+  .intro{text-align:center; color:var(--ink-soft); font-size:14px; margin:0 0 32px;}
+  .card{
+    display:block; background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow);
+    border:1px solid var(--line); padding:22px 24px; margin-bottom:16px; text-decoration:none; color:inherit;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .card:hover{transform:translateY(-2px); box-shadow:0 10px 28px rgba(58,79,60,0.14);}
+  .card .tag{
+    display:inline-block; font-size:11px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;
+    color:var(--sage-darker); background:var(--sage-light); padding:4px 10px; border-radius:999px; margin-bottom:10px;
+  }
+  .card h2{font-family:'Playfair Display', serif; font-style:italic; font-weight:700; font-size:19px; color:var(--ink); margin:0 0 6px;}
+  .card p{font-size:13.5px; color:var(--ink-soft); margin:0;}
+  footer{text-align:center; font-size:11.5px; color:var(--ink-soft); margin-top:26px; opacity:0.75;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
+      <path d="M21 4C21 4 8 9 8 22C8 30.2843 13.9249 37 21 37C21 37 21 20 21 4Z" fill="#86A889" opacity="0.55"/>
+      <path d="M21 4C21 4 34 9 34 22C34 30.2843 28.0751 37 21 37C21 37 21 20 21 4Z" fill="#4F6B52"/>
+      <path d="M21 6V36" stroke="#F8F7F3" stroke-width="1" stroke-linecap="round"/>
+    </svg>
+    <div class="brand-text">
+      <span class="name">Erika Farías</span>
+      <span class="sub">Nutrición</span>
+    </div>
+  </div>
+
+  <h1>Cuestionarios del programa</h1>
+  <p class="intro">Elige el cuestionario que te corresponde según en qué punto del programa te encuentres.</p>
+
+  <a class="card" href="historia-clinica.html">
+    <span class="tag">Inicio del programa</span>
+    <h2>Historia Clínica Nutricional</h2>
+    <p>Cuestionario inicial — cuéntame de ti antes de tu primera cita. Toma entre 18 y 22 minutos.</p>
+  </a>
+
+  <a class="card" href="seguimiento-semanal.html">
+    <span class="tag">Cada semana</span>
+    <h2>Seguimiento Semanal</h2>
+    <p>Un check-in rápido de 5 preguntas sobre tu semana. Toma menos de 2 minutos.</p>
+  </a>
+
+  <a class="card" href="seguimiento-mensual.html">
+    <span class="tag">Cada mes</span>
+    <h2>Seguimiento Mensual</h2>
+    <p>Cuéntame cómo te fue este mes, para ir ajustando tu plan. Toma menos de 5 minutos.</p>
+  </a>
+
+  <a class="card" href="cuestionario-final.html">
+    <span class="tag">Cierre del programa</span>
+    <h2>Cuestionario Final</h2>
+    <p>Evaluamos juntas tus resultados y tu experiencia en el programa. Toma entre 5 y 8 minutos.</p>
+  </a>
+
+  <footer>Erika Farías · Especialista en Nutrición, Activación Física y Salud · Cédula Profesional 11975217</footer>
+</div>
+</body>
+</html>
